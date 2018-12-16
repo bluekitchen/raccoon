@@ -33,11 +33,11 @@ Run `make flash`
 
 ### Adafruit Bluefruit LE Friend
 
-There's no support to update via the BLE DFU. However, the LE Friend provides the regular SWD interface to upload the firmwware with an JTAG/SWD programmer (e.g. a ST-Link or a SEGGER J-Link). Config files for OpenOCD are provided int the `firmware/nrf/blefriend32` folder.
+There's no support to update via the BLE DFU. However, the LE Friend provides the regular SWD interface to upload the firmware with an JTAG/SWD programmer (e.g. a ST-Link or a SEGGER J-Link). Config files for OpenOCD are provided int the `firmware/nrf/blefriend32` folder.
 
 ## Setup
 
-When running raccon.py for the first time, it will create a template config file 'config.py' that lists all serial ports.
+When running raccoon.py for the first time, it will create a template config file 'config.py' that lists all serial ports.
 Please edit config.py and uncomment the lines that refer to Raccoon sniffer device.
 
 ## Usage
