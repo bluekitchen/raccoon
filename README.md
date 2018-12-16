@@ -49,15 +49,15 @@ After configuration, start raccoon.py. It will list found devices and wait for a
 ### General
 The current version allow to follow all Bluetooth 4.x connections including support for LE Data Length Extension. 
 
-### Codec/2-MBit PHHY
+### Security
+Encrypted connections are not supported yet. It would be possible to decrypt data on the fly if the stored link key is provided. For LE Legacy Connections, the link key could be retrieved by brute force as there are only 1M possible Passkeys.
+
+### LE 2M/Coded PHY
 Logging connections with 2-MBit PHY or Coded PHY is technically possible, but not implemented yet.
 
 ### Throughput
-The UART of the nRF5x devices only support a maximal baudrate of 1 mbps. This is not enough when the connection intervals are used completely. The new [nRF52840 Dongle (PCA10059)](https://www.nordicsemi.com/Software-and-Tools/Development-Kits/nRF52840-Dongle/GetStarted) supports the USD Device mode, which should be fast enough.
+The UART of the nRF5x devices only support a maximal baudrate of 1 mbps. This is not enough when the connection intervals are fully used. The new [nRF52840 Dongle (PCA10059)](https://www.nordicsemi.com/Software-and-Tools/Development-Kits/nRF52840-Dongle/GetStarted) supports the USD Device mode, which should be fast enough to even capture LE 2M PHY at max speed.
 
-### Security
-
-Encrypted connections are not supported yet. It would be possible to decrypt data on the fly if the stored link key is provided. For LE Legacy Connections, the link key could be retrieved by brute force as there are only 1M possible Passkeys.
 
 
 
