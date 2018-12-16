@@ -1,0 +1,4 @@
+*.pcap
+*.pklg
+config.py
+__pycache__
