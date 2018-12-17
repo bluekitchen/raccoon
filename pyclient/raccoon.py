@@ -361,11 +361,14 @@ if args.addr:
     for i in range(0,6):
         filter_mac[5-i] = int(stripped[i*2:i*2+2], 16)
 
-# get current path
-script_path = os.path.dirname(sys.argv[0])  
+# get path to config file
+script_path = os.path.dirname(sys.argv[0])
+if len(script_path) == 0:
+    config_path = config_name
+else:
+    config_path = script_path + '/' + config_name
 
 # check config
-config_path = script_path + '/' + config_name
 if not os.path.isfile(config_path):
     ui.log_error("Config file %s does not exist" % config_path)
     create_config_template(config_path) 
