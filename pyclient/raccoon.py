@@ -67,7 +67,7 @@ ADVERTISING_RADIO_ACCESS_ADDRESS = 0x8E89BED6
 ADVERTISING_CRC_INIT             = 0x555555
 
 
-config_template = '''# BLE Sniffer config
+config_template = '''# Raccoon BLE Sniffer Config
 
 # Output format
 # pick one of the following logging formats by uncommenting the format line
@@ -80,7 +80,7 @@ format = 'pcap'
 
 
 # Available Sniffer devices
-# List of detected serial ports, please uncomment your BLE Sniffer devices
+# List of detected serial ports, please uncomment your Raccoon BLE Sniffer devices
 sniffers = [
 SNIFFERS
 ]
@@ -339,7 +339,7 @@ Main application
 def signal_handler(sig, frame):
     global cfg
     global ui
-    ui.log_info('\nThanks for using blesniffer')
+    ui.log_info('\nThanks for using raccoon.')
     for sniffer in sniffers:
         sniffer.abort()
     sys.exit(0)
