@@ -44,16 +44,37 @@ Please edit config.py and uncomment the lines that refer to Raccoon sniffer devi
 
 After configuration, start raccoon.py. It will list found devices and wait for a connection request. It will follow the first connection request. To follow only a specific device, you can set a BD_ADDR (MAC) filter with the --addr option.
 
+During scanning, unique advertisements will be listed and a counter displays the total number of received devices.
+After connect, the number of Connection Events and the number of non-empty data packets are shown.
+
+Example run:
+
+    $ pyclient/raccoon.py
+    [+] Config: output trace.pcap (pcap)
+    [-] Sniffer #0: port /dev/cu.usbmodem0006816168181, baud 1000000, rtscts 1, channel 37, version 9957-dirty
+    [+]  1. 00:1a:7d:da:71:01         ADV_IND  -46 dBm, Name: 'LE Counter', UUID16: FF10
+    [+]  2. 04:52:c7:f8:6e:57         ADV_IND  -97 dBm, UUID16: FEBE
+    [+]  3. 5e:5e:fe:16:21:19    ADV_SCAN_IND -102 dBm, UUID16: FE9F
+    [+]  4. 00:21:3c:ac:f7:38         ADV_IND  -56 dBm, UUID128: 200c9a66-0800-9e96-e211-818a400b0998
+    [+]  5. 1f:3a:8b:7a:e6:b8 ADV_NONCONN_IND  -97 dBm,
+    [+] CONNECTION 4a:dc:5a:84:78:fb -> 00:1a:7d:da:71:01 -- aa af9aaa9a, interval 30.00 ms, timeout_us 720.00 ms, latency 0
+    [+] TERMINATE, disconnect
+    [+] Restart sniffer on channel #37
+    [+]
+
+    Thanks for using raccoon
+
+
 ## Status and Outlook
 
 ### General
-The current version allow to follow all Bluetooth 4.x connections including support for LE Data Length Extension. 
+The current version allow to follow all Bluetooth 4.x connections including connection that use the LE Data Length Extension. 
 
 ### Security
-Encrypted connections are not supported yet. It would be possible to decrypt data on the fly if the stored link key is provided. For LE Legacy Connections, the link key could be retrieved by brute force as there are only 1M possible Passkeys.
+Encrypted connections are not supported yet. Sniffing encrypted connections requires the Long Term Key/Link Key to be present on the sniffer hardware. For LE Legacy Connections, the link key can be retrieved by brute force as there are only 1M possible Passkeys.
 
 ### LE 2M/Coded PHY
-Logging connections with 2-MBit PHY or Coded PHY is technically possible, but not implemented yet.
+Logging connections with 2-MBit PHY or Coded PHY is not implemented yet.
 
 ### Throughput
 The UART of the nRF5x devices only support a maximal baudrate of 1 mbps. This is not enough when the connection intervals are fully used. The new [nRF52840 Dongle (PCA10059)](https://www.nordicsemi.com/Software-and-Tools/Development-Kits/nRF52840-Dongle/GetStarted) supports the USD Device mode, which should be fast enough to even capture LE 2M PHY at max speed.
