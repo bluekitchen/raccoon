@@ -16,6 +16,9 @@ def calc_sk(skd_m, skd_s):
 	SK = sk_cipher.encrypt(SKD)
 	return SK
 
+def calc_iv(iv_m, iv_s):
+	return iv_s + iv_m
+
 def encrypt(sk, packet_counter, direction, iv, packet):
 	llid    = packet[0] & 3
 	payload = packet[2:]
@@ -54,9 +57,8 @@ IVs  = parse_hex("0xDEAFBABE")
 # get SK from received SKDs
 SK = calc_sk(SKDm, SKDs)
 
-# combine IV of master and slave
-IV = IVs + IVm
-dump("IV", IV)
+# get IV from received IVs
+IV = calc_iv(IVm, IVs)
 
 
 # LL_START_ENC_RSP, master to slave
