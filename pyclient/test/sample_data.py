@@ -8,6 +8,14 @@ def parse_hex(string):
 def dump(name, value):
 	print(("%10s: " % name) + ' '.join([("%02x" % x) for x in value]) + ' (MSO to LSO)')
 
+def calc_sk(skd_m, skd_s):
+	# combine SKD of master and slave
+	SKD = skd_s + skd_m
+	# calculate SK = E(LTK, SKD)
+	sk_cipher = AES.new(LTK, AES.MODE_ECB)
+	SK = sk_cipher.encrypt(SKD)
+	return SK
+
 def encrypt(sk, packet_counter, direction, iv, packet):
 	llid    = packet[0] & 3
 	payload = packet[2:]
@@ -43,14 +51,8 @@ SKDs = parse_hex("0x0213243546576879")
 IVm  = parse_hex("0xBADCAB24")
 IVs  = parse_hex("0xDEAFBABE")
 
-# combine SKD of master and slave
-SKD = SKDs + SKDm
-dump("SKD", SKD)
-
-# calculate SK = E(LTK, SKD)
-sk_cipher = AES.new(LTK, AES.MODE_ECB)
-SK = sk_cipher.encrypt(SKD)
-dump("SK", SK)
+# get SK from received SKDs
+SK = calc_sk(SKDm, SKDs)
 
 # combine IV of master and slave
 IV = IVs + IVm
