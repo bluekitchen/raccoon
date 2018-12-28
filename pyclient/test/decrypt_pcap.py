@@ -14,6 +14,18 @@ def as_hex(data):
 def dump(name, value):
     print(("%10s: " % name) + ' '.join([("%02x" % x) for x in value]) + ' (MSO to LSO)')
 
+def process_ll_enq_req(packet):
+    ctr_data = packet[3:]
+    skd_m = ctr_data[17:9:-1]
+    iv_m  = ctr_data[21:17:-1]
+    return (skd_m, iv_m)
+
+def process_ll_enq_rsp(packet):
+    ctr_data = packet[3:]
+    skd_s = ctr_data[7::-1]
+    iv_s  = ctr_data[11:7:-1]
+    return (skd_s, iv_s)
+
 def calc_sk(ltk, skd_m, skd_s):
     # combine SKD of master and slave
     dump('ltk', ltk)
@@ -26,7 +38,9 @@ def calc_sk(ltk, skd_m, skd_s):
     return SK
 
 def calc_iv(iv_m, iv_s):
-    return iv_s + iv_m
+    iv = iv_s + iv_m
+    dump('IV', iv)
+    return iv
 
 def encrypt(sk, packet_counter, direction, iv, packet):
     llid    = packet[0] & 3
@@ -108,9 +122,10 @@ if True:
                 if aa != 0x8e89bed6:
                     print('%6u.%06u: header %02x %02x - %s' % (ts_sec, ts_used, header, length, as_hex(payload[6:-3])))
 
+                encrypted = payload[4:-3]
+
                 if master_to_slave and tx_encrypted_master and length > 0:
                     # decrypt packet (dirction 1 = master to slave)
-                    encrypted = payload[4:-3]
                     print('encrypted: %s' % as_hex(encrypted))
                     decrypted = decrypt(SK, packet_count_master, 1, IV, encrypted)
                     print('decrypted: %s' % as_hex(decrypted))
@@ -121,23 +136,16 @@ if True:
                     ctr_data = payload[7:-3]
                     if opcode == 3:
                         # LL_ENC_REQ
-                        skd_m = ctr_data[17:9:-1]
-                        iv_m  = ctr_data[21:17:-1]
-                        # skd_m = ctr_data[10:18]
-                        # iv_m  = ctr_data[18:22]
+                        (skd_m, iv_m) = process_ll_enq_req(encrypted)
                         print("LL_ENC_REQ: SKDm %s, IVm %s" % ( as_hex(skd_m), as_hex(iv_m) ))
                     if opcode == 4:
                         # LL_ENC_RSP
-                        skd_s = ctr_data[7::-1]
-                        iv_s  = ctr_data[11:7:-1]
-                        # skd_s = ctr_data[0:8]
-                        # iv_s  = ctr_data[8:12]
+                        (skd_s, iv_s) = process_ll_enq_rsp(encrypted)
                         print("LL_ENC_RSP: SKDs %s, IVs %s" % ( as_hex(skd_s), as_hex(iv_s) ))
 
                         # setup SK + IV
                         SK = calc_sk(linkkey, skd_m, skd_s)
                         IV = calc_iv(iv_m, iv_s)
-                        dump('IV', IV)
                         packet_count_master = 0
                         packet_count_slave  = 0
 
