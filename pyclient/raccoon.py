@@ -72,7 +72,7 @@ config_template = '''# Raccoon BLE Sniffer Config
 # Output format
 # pick one of the following logging formats by uncommenting the format line
 
-# PKLG format tries to minimic HCI data to/from a Bluetooth Controller. It can be opened with Wireshark and Apple's PacketLogger
+# PKLG format minimics HCI data to/from a Bluetooth Controller. It can be opened with Wireshark and Apple's PacketLogger
 # format  = 'pklg'
 
 # PCAP format uses Bluetooth BLE Trace format defined by Nordic. It can be opened with Wireshark.
@@ -348,9 +348,16 @@ def signal_handler(sig, frame):
 ui = ConsoleUI()
 filter_mac = bytearray(6)
 
+# configuration options
+format = 'pcap'
+rtscts = 1
+log_delay = 0.1
+min_rssi  = -80
+
 # command parser
 parser = argparse.ArgumentParser()
 parser.add_argument("-a", "--addr", help="follow only connections of device with bd_addr, e.g. 11:22:33:44:55:66")
+parser.add_argument("-r", "--rssi", help="set minimum RSSI, default = %d" % min_rssi)
 args = parser.parse_args()
 if args.addr:
     # strip '-' and ':', store address in little endian
@@ -360,6 +367,8 @@ if args.addr:
         sys.exit(10)
     for i in range(0,6):
         filter_mac[5-i] = int(stripped[i*2:i*2+2], 16)
+if args.rssi:
+    min_rssi = int(args.rssi)
 
 # get path to config file
 script_path = os.path.dirname(sys.argv[0])
@@ -375,12 +384,7 @@ if not os.path.isfile(config_path):
     sys.exit(10)
 
 # TODO: process command line arguments for:
-# - filter address
-
-# defaults
-format = 'pcap'
-rtscts = 1
-log_delay = 0.1
+# - minimum rssi
 
 # load config
 sys.path.insert(0, script_path)
@@ -404,7 +408,7 @@ else:
     print('Unknown logging format %s' % cfg.format)
     sys.exit(10)
 
-cfg_summary = "Config: output %s (%s)" % (filename, cfg.format)
+cfg_summary = "Config: output %s (%s), min rssi %d dBm" % (filename, cfg.format, min_rssi)
 if args.addr:
     cfg_summary += "- filter: %s" % args.addr
 ui.log_info(cfg_summary)
@@ -496,9 +500,6 @@ while 1:
     timestamp_log_us = earliest_event_timestamp_us
     length = len(data)
 
-    # forward packets to ui, too
-    ui.process_packet(tag, data)
-
     if tag == TAG_MSG_TERMINATE:
         ui.log_info("Restart sniffer on channel #%u" % earliest_event_sniffer.channel)
         earliest_event_sniffer.write( pack('<BHIBII6s', TAG_CMD_SNIFF_CHANNEL, 19, 0, earliest_event_sniffer.channel, ADVERTISING_RADIO_ACCESS_ADDRESS, ADVERTISING_CRC_INIT, filter_mac ) )
@@ -506,8 +507,13 @@ while 1:
     if tag == TAG_DATA:
 
         # parse header
-        timestamp_sniffer_us, channel, flags, rssi, aa = unpack_from( "<IBBBxI", data )
+        timestamp_sniffer_us, channel, flags, neg_rssi, aa = unpack_from( "<IBBBxI", data )
         packet  = data[8:]
+
+        # filter on rssi
+        rssi = -neg_rssi
+        if rssi < min_rssi:
+            continue
 
         # dump packet
         # print( tag, length, timestamp_log_us, channel, flags, rssi, as_hex(packet) )
@@ -524,4 +530,7 @@ while 1:
         # write packet
         ts_sec  = log_start_sec + int(timestamp_log_us/1000000)
         ts_usec = timestamp_log_us % 1000000
-        output.write_packet( ts_sec, ts_usec, flags, channel, rssi, event_cnt, delta_ts, packet )
+        output.write_packet( ts_sec, ts_usec, flags, channel, neg_rssi, event_cnt, delta_ts, packet )
+
+    # forward packets to ui, too
+    ui.process_packet(tag, data)
