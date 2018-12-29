@@ -63,11 +63,11 @@ def decrypt(sk, packet_counter, direction, iv, packet):
     nonce   = bytes( pack("<IB", packet_counter & 0xffff, ((packet_counter >> 32) & 0x7f) | (direction << 7) ) + iv[::-1])
     dump('nonce', nonce)
     data_cipher = AES.new(sk, AES.MODE_CCM, nonce=nonce, mac_len=4)
-    # data_cipher.update( bytes([llid]) )
-    # plaintext = data_cipher.decrypt_and_verify(payload, mic)
-    plaintext = data_cipher.decrypt(payload)
-    deccrypted = packet[0:2] + plaintext
-    return deccrypted
+    data_cipher.update( bytes([llid]) )
+    plaintext = data_cipher.decrypt_and_verify(payload, mic)
+    # plaintext = data_cipher.decrypt(payload)
+    decrypted = packet[0:2] + plaintext
+    return decrypted
 
 
 if len(sys.argv) < 3:
