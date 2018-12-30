@@ -352,12 +352,12 @@ filter_mac = bytearray(6)
 format = 'pcap'
 rtscts = 1
 log_delay = 0.1
-min_rssi  = -80
+rssi_min  = -80
 
 # command parser
 parser = argparse.ArgumentParser()
 parser.add_argument("-a", "--addr", help="follow only connections of device with bd_addr, e.g. 11:22:33:44:55:66")
-parser.add_argument("-r", "--rssi", help="set minimum RSSI, default = %d" % min_rssi)
+parser.add_argument("-r", "--rssi", help="set minimum RSSI, default = %d" % rssi_min)
 args = parser.parse_args()
 if args.addr:
     # strip '-' and ':', store address in little endian
@@ -368,7 +368,7 @@ if args.addr:
     for i in range(0,6):
         filter_mac[5-i] = int(stripped[i*2:i*2+2], 16)
 if args.rssi:
-    min_rssi = int(args.rssi)
+    rssi_min = int(args.rssi)
 
 # get path to config file
 script_path = os.path.dirname(sys.argv[0])
@@ -408,7 +408,7 @@ else:
     print('Unknown logging format %s' % cfg.format)
     sys.exit(10)
 
-cfg_summary = "Config: output %s (%s), min rssi %d dBm" % (filename, cfg.format, min_rssi)
+cfg_summary = "Config: output %s (%s), min rssi %d dBm" % (filename, cfg.format, rssi_min)
 if args.addr:
     cfg_summary += "- filter: %s" % args.addr
 ui.log_info(cfg_summary)
@@ -451,7 +451,8 @@ for sniffer in cfg.sniffers:
 
         # start listening
         if channel < 40:
-            sniffer.write( pack('<BHIBII6s', TAG_CMD_SNIFF_CHANNEL, 19, 0, channel, ADVERTISING_RADIO_ACCESS_ADDRESS, ADVERTISING_CRC_INIT, filter_mac ) )
+            rssi_min_neg = - rssi_min
+            sniffer.write( pack('<BHIBII6sB', TAG_CMD_SNIFF_CHANNEL, 20, 0, channel, ADVERTISING_RADIO_ACCESS_ADDRESS, ADVERTISING_CRC_INIT, filter_mac, rssi_min_neg ) )            
 
         sniffer_id += 1
         sniffers.append(sniffer)
@@ -507,12 +508,12 @@ while 1:
     if tag == TAG_DATA:
 
         # parse header
-        timestamp_sniffer_us, channel, flags, neg_rssi, aa = unpack_from( "<IBBBxI", data )
+        timestamp_sniffer_us, channel, flags, rssi_negative, aa = unpack_from( "<IBBBxI", data )
         packet  = data[8:]
 
         # filter on rssi
-        rssi = -neg_rssi
-        if rssi < min_rssi:
+        rssi = -rssi_negative
+        if rssi < rssi_min:
             continue
 
         # dump packet
@@ -530,7 +531,7 @@ while 1:
         # write packet
         ts_sec  = log_start_sec + int(timestamp_log_us/1000000)
         ts_usec = timestamp_log_us % 1000000
-        output.write_packet( ts_sec, ts_usec, flags, channel, neg_rssi, event_cnt, delta_ts, packet )
+        output.write_packet( ts_sec, ts_usec, flags, channel, rssi_negative, event_cnt, delta_ts, packet )
 
     # forward packets to ui, too
     ui.process_packet(tag, data)

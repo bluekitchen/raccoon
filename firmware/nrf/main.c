@@ -118,6 +118,9 @@ struct {
     // current channel
     volatile uint8_t  channel;
 
+    // min rssi (negative)
+    volatile uint8_t rssi_min_negative;
+
     // access address
     volatile uint32_t aa;
 
@@ -331,11 +334,11 @@ void RADIO_IRQHandler(void) {
         NRF_RADIO->PACKETPTR = (uint32_t)(queue_alloc( rxQ )+PDU_META_OFFSET);
 
         // store meta data
-        p->payload.channel   = ctx.channel;
-        p->payload.timestamp = packet_start_us;
-        p->payload.rssi      = NRF_RADIO->RSSISAMPLE;
-        p->payload.aa        = ctx.aa;
-        p->payload.flags     = 0;
+        p->payload.channel       = ctx.channel;
+        p->payload.timestamp     = packet_start_us;
+        p->payload.rssi_negative = NRF_RADIO->RSSISAMPLE;
+        p->payload.aa            = ctx.aa;
+        p->payload.flags         = 0;
         // length for adv or data pdu
         p->length = 12 + 2 + p->payload.pdu.adv.len + CRC_LEN;
 
@@ -388,6 +391,11 @@ void RADIO_IRQHandler(void) {
 
     switch( ctx.mode ) {
         case FOLLOW_CONNECT:
+            // ignore packets with lower rssi than requested
+            if (p->payload.rssi_negative > ctx.rssi_min_negative){
+                drop_packet = 1;
+                break;
+            } 
             // don't process control packets if CRC invalid
             if( !crcOk ) {
                 break;
@@ -404,9 +412,6 @@ void RADIO_IRQHandler(void) {
                     break;
                 }
 
-                // uint8_t *chm = adv->connect_ind.chan_map;
-                // printf("%d %02x%02x%02x%02x%02x%02x\n", p->payload.timestamp, init_addr[0], init_addr[1], init_addr[2], init_addr[3], init_addr[4], init_addr[5] );
-                // printf("%02x%02x%02x%02x%02x\n", chm[0], chm[1], chm[2], chm[3], chm[4] );
                 hopping_init( &h );
                 hopping_set_channel_map( &h, adv->connect_ind.chan_map, adv->connect_ind.hop );
                 ctx.interval_us = READ_LE_16(&adv->connect_ind.interval) * 1250;
@@ -689,6 +694,7 @@ int main(void) {
                 case TAG_CMD_SNIFF_CHANNEL: {
                     uint8_t empty_mac[6] = { 0 };
                     ctx.channel = cmd.msg.data.cmd_sniff_channel.channel;
+                    ctx.rssi_min_negative = cmd.msg.data.cmd_sniff_channel.rssi_min_negative;
                     ctx.aa = cmd.msg.data.cmd_sniff_channel.aa;
                     uint32_t crc_init = cmd.msg.data.cmd_sniff_channel.crc_init;
                     memcpy( ctx.connection_filter_address, cmd.msg.data.cmd_sniff_channel.mac, 6 );

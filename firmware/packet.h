@@ -83,10 +83,11 @@ typedef union {
         uint8_t map[5];
     } __packed chan_map_update;
     struct {
-        uint8_t channel;
+        uint8_t  channel;
         uint32_t aa;
         uint32_t crc_init;
-        uint8_t mac[6];
+        uint8_t  mac[6];
+        uint8_t  rssi_min_negative;   // min rssi value as negative value
     } __packed cmd_sniff_channel;
 } __packed msg_data_t;
 
@@ -99,7 +100,7 @@ typedef struct {
     uint32_t timestamp;
     uint8_t  channel;
     uint8_t  flags;      // bits 0+1: direction, bit 2: CRC OK, bit 3: packet(s) missed
-    uint8_t  rssi;
+    uint8_t  rssi_negative;
     uint8_t  _reserved;  // needed to align RX buffer after aa for radio DMA
     uint32_t aa;
     union {
