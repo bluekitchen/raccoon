@@ -64,9 +64,12 @@ def decrypt(sk, packet_counter, direction, iv, packet):
     dump('nonce', nonce)
     data_cipher = AES.new(sk, AES.MODE_CCM, nonce=nonce, mac_len=4)
     data_cipher.update( bytes([llid]) )
-    plaintext = data_cipher.decrypt_and_verify(payload, mic)
-    # plaintext = data_cipher.decrypt(payload)
-    decrypted = packet[0:2] + plaintext
+    plaintext = data_cipher.decrypt(payload)
+    try:
+        data_cipher.verify(mic)
+    except ValueError:
+        print("MIC mismatch")
+    decrypted = bytes( [packet[0], packet[1] -4]) + plaintext
     return decrypted
 
 
@@ -88,12 +91,12 @@ packet_count_slave  = 0
 tx_encrypted_master = False
 tx_encrypted_slave  = False
 
-#with open (outfile, 'wb') as fout:
-if True:
+with open (outfile, 'wb') as fout:
     with open (infile, 'rb') as fin:
 
         # read file header
         file_header = fin.read(24)
+        fout.write(file_header)
 
         while True:
 
@@ -101,7 +104,7 @@ if True:
             packet_header = fin.read(16)
             if len(packet_header) < 16:
                 break
-            ts_sec, ts_used, packet_size, _ = unpack('<IIII', packet_header)
+            ts_sec, ts_usec, packet_size, _ = unpack('<IIII', packet_header)
             # ignore payload header
             payload_header = fin.read(7)
             # read payload meta
@@ -120,15 +123,32 @@ if True:
 
                 # dump
                 if aa != 0x8e89bed6:
-                    print('%6u.%06u: header %02x %02x - %s' % (ts_sec, ts_used, header, length, as_hex(payload[6:-3])))
+                    print('%6u.%06u: header %02x %02x - %s' % (ts_sec, ts_usec, header, length, as_hex(payload[6:-3])))
 
-                encrypted = payload[4:-3]
+                if length >= 4:
+                    encrypted = payload[4:-3]
+                    update_packet = False
+                    if master_to_slave and tx_encrypted_master:
+                        # decrypt packet (dirction 1 = master to slave)
+                        print('encrypted: %s' % as_hex(encrypted))
+                        decrypted = decrypt(SK, packet_count_master, 1, IV, encrypted)
+                        print('decrypted: %s' % as_hex(decrypted))
+                        tx_encrypted_slave = True
+                        packet_count_master += 1
+                        update_packet = True
+    
+                    if not master_to_slave and tx_encrypted_slave:
+                        # decrypt packet (dirction 1 = master to slave)
+                        print('encrypted: %s' % as_hex(encrypted))
+                        decrypted = decrypt(SK, packet_count_slave, 0, IV, encrypted)
+                        print('decrypted: %s' % as_hex(decrypted))
+                        packet_count_slave += 1
+                        update_packet = True
 
-                if master_to_slave and tx_encrypted_master and length > 0:
-                    # decrypt packet (dirction 1 = master to slave)
-                    print('encrypted: %s' % as_hex(encrypted))
-                    decrypted = decrypt(SK, packet_count_master, 1, IV, encrypted)
-                    print('decrypted: %s' % as_hex(decrypted))
+                    if update_packet:
+                        payload = payload[0:4] + decrypted + payload[-3:]
+                        packet_header  = pack( '<IIII', ts_sec, ts_usec, packet_size-4, packet_size-4)
+                        payload_header = pack( '<BBBBHB', 0, 6, packet_size-4-7, 1, 0, 0x06)
 
                 llid = header & 3
                 if llid == 3:
@@ -157,6 +177,7 @@ if True:
                         print('LL_START_ENC_REQ')
 
             # write packet
-            # fout.write(packet_header)
-            # fout.write(payload_header)
-            # fout.write(payload)
+            fout.write(packet_header)
+            fout.write(payload_header)
+            fout.write(payload_info)
+            fout.write(payload)
