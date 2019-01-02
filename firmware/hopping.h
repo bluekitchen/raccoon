@@ -37,17 +37,50 @@
 
 
 typedef struct {
-    uint8_t hopIncrement;
     uint8_t chMap[5];
+    uint8_t hopIncrement;
     uint8_t chRemap[37];
-    uint8_t currentCh;
     uint8_t chCnt;
+    // csa1
+    uint8_t currentCh;
+    // csa2
+    uint16_t channelIdentifier;
 } hopping_t;
 
 
+/**
+ * @brief init hopping instance
+ */
 void hopping_init( hopping_t *c );
-uint8_t hopping_get_next_channel( hopping_t *c );
-void hopping_set_channel_map( hopping_t *c, const uint8_t *chm, uint8_t hopIncrement );
 
+/*
+ * @brief set list of used channels
+ * @param channel_map
+ */
+void hopping_set_channel_map( hopping_t *c, const uint8_t *chm);
+
+// Channel Selection Algorithm #1
+
+/* 
+ * @brief set hop increment
+ */
+void hopping_csa1_set_hop_increment( hopping_t *c, uint8_t hopIncrement );
+
+/**
+ * @brief get next channel
+ */
+uint8_t hopping_csa1_get_next_channel( hopping_t *c );
+
+// Channel Selection Algorithm #2
+
+/* 
+ * @brief init csa 2 algorithm
+ */
+void hopping_csa2_set_access_address( hopping_t *c, uint32_t accessAddress );
+
+/**
+ * @brief get next channel
+ */
+uint8_t hopping_csa2_get_channel_for_counter( hopping_t *c, uint16_t counter );
 
 

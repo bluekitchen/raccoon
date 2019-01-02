@@ -274,7 +274,7 @@ static void sync_hop_channel() {
 
     if (ctx.channel_map_update_pending && (ctx.channel_map_update_instant == ctx.connection_event)) {
         insert_channel_map_update_message( (const uint8_t *) &ctx.channel_map_update_map);
-        hopping_set_channel_map( &h, (const uint8_t *) &ctx.channel_map_update_map, h.hopIncrement );
+        hopping_set_channel_map( &h, (const uint8_t *) &ctx.channel_map_update_map );
         ctx.channel_map_update_pending = 0;
     }
 
@@ -291,7 +291,7 @@ static void sync_hop_channel() {
 
     insert_connection_event_message(ctx.connection_event);
 
-    ctx.channel = hopping_get_next_channel( &h );
+    ctx.channel = hopping_csa1_get_next_channel( &h );
 
     radio_set_channel_fast( ctx.channel );
 
@@ -413,14 +413,15 @@ void RADIO_IRQHandler(void) {
                 }
 
                 hopping_init( &h );
-                hopping_set_channel_map( &h, adv->connect_ind.chan_map, adv->connect_ind.hop );
+                hopping_set_channel_map( &h, adv->connect_ind.chan_map );
+                hopping_csa1_set_hop_increment( &h, adv->connect_ind.hop );
                 ctx.interval_us = READ_LE_16(&adv->connect_ind.interval) * 1250;
                 ctx.timeout_us  = READ_LE_16(&adv->connect_ind.timeout)  * 10000;
                 ctx.latency     = READ_LE_16(&adv->connect_ind.latency);
                 ctx.connection_event = 0;
                 uint32_t crcInit = READ_LE_24(&adv->connect_ind.crc_init);
                 ctx.aa = READ_LE_32(&adv->connect_ind.access_addr);
-                ctx.channel = hopping_get_next_channel( &h );
+                ctx.channel = hopping_csa1_get_next_channel( &h );
                 radio_follow_conn( ctx.aa, ctx.channel, crcInit );
                 ctx.mode = SYNC_CONNECTION;
                 printf("Follow connection: hop %u, timeout %u us, interval %u\n", adv->connect_ind.hop, ctx.timeout_us, ctx.interval_us);

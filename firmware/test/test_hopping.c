@@ -49,7 +49,8 @@ int main(int argc, char *args[]) {
 
     hopping_init( &h );
 
-    hopping_set_channel_map( &h, chm, hopIncrement );
+    hopping_set_channel_map( &h, chm );
+    hopping_csa1_set_hop_increment( &h, hopIncrement );
 
     for(int i=0; i<sizeof(h.chRemap); ++i) {
         printf("%3d", h.chRemap[i] );
@@ -58,7 +59,7 @@ int main(int argc, char *args[]) {
 
 
     for(int i=0; i<20; ++i) {
-        printf("%d\n", hopping_get_next_channel( &h ) );
+        printf("%d\n", hopping_csa1_get_next_channel( &h ) );
     }
 
     return EXIT_SUCCESS;

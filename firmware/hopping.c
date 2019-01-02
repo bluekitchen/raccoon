@@ -46,23 +46,11 @@ void hopping_init( hopping_t *c ) {
     memset( c, 0, sizeof(hopping_t) );
 }
 
-uint8_t hopping_get_next_channel( hopping_t *c ) {
-    assert( c != NULL );
-
-    c->currentCh = (c->currentCh + c->hopIncrement) % 37;
-    if( 1 == GET_BIT( c->chMap, c->currentCh ) ) {
-        return c->currentCh;
-    } else {
-        return c->chRemap[ c->currentCh % c->chCnt ];
-    }
-}
-
-void hopping_set_channel_map( hopping_t *c, const uint8_t *chm, uint8_t hopIncrement ) {
+void hopping_set_channel_map( hopping_t *c, const uint8_t *chm ) {
     assert( c != NULL );
     assert( chm != NULL );
 
     memcpy( c->chMap, chm, 5 );
-    c->hopIncrement = hopIncrement;
 
     c->chCnt = 0;
     for(int i=0; i<37; ++i) {
@@ -78,6 +66,30 @@ void hopping_set_channel_map( hopping_t *c, const uint8_t *chm, uint8_t hopIncre
 
 //    printf("chCnt: %d\n", c->chCnt );
 }
+
+void hopping_csa1_set_hop_increment( hopping_t *c, uint8_t hopIncrement ){
+    c->hopIncrement = hopIncrement;
+}
+
+uint8_t hopping_csa1_get_next_channel( hopping_t *c ) {
+    assert( c != NULL );
+
+    c->currentCh = (c->currentCh + c->hopIncrement) % 37;
+    if( 1 == GET_BIT( c->chMap, c->currentCh ) ) {
+        return c->currentCh;
+    } else {
+        return c->chRemap[ c->currentCh % c->chCnt ];
+    }
+}
+
+void hopping_csa2_set_access_address( hopping_t *c, uint32_t accessAddress ){
+}
+
+uint8_t hopping_csa2_get_channel_for_counter( hopping_t *c, uint16_t counter ){
+    return 0;
+}
+
+
 
 
 
