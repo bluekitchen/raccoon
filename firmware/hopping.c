@@ -82,7 +82,17 @@ uint8_t hopping_csa1_get_next_channel( hopping_t *c ) {
     }
 }
 
+// channelIdentifier = (Access Address31-16) XOR (Access Address15-0)
 void hopping_csa2_set_access_address( hopping_t *c, uint32_t accessAddress ){
+    c->channelIdentifier = (accessAddress >> 16) ^ (accessAddress & 0xffff);
+}
+
+// @TODO rbit intrinsic could be used
+uint16_t hopping_csa2_permutation(uint16_t v){
+    v = ((v >> 1) & 0x5555) | ((v & 0x5555) << 1);
+    v = ((v >> 2) & 0x3333) | ((v & 0x3333) << 2);
+    v = ((v >> 4) & 0x0F0F) | ((v & 0x0F0F) << 4);
+    return v;
 }
 
 uint8_t hopping_csa2_get_channel_for_counter( hopping_t *c, uint16_t counter ){

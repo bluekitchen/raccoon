@@ -62,6 +62,11 @@ int main(int argc, char *args[]) {
         printf("%d\n", hopping_csa1_get_next_channel( &h ) );
     }
 
+    for (int i=0;i<8;i++){
+        int v = (1 << i) | (1 << (i+8));
+        printf("%04x -> %04x\n", v, hopping_csa2_permutation(v));
+    }
+
     return EXIT_SUCCESS;
 }
 
