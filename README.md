@@ -68,8 +68,10 @@ Example run:
 ## Status and Outlook
 
 ### General
-The current version allow to follow all Bluetooth 4.x connections including connection that use the LE Data Length Extension. 
-
+The current version allow to follow all Bluetooth 4.x connections. Optional supported features:
+  - LE Data Length Extension (DLE).
+  - Channel Selection Algorithm #2 (CSA #2)
+  
 ### Security
 Encrypted connections are not supported yet. Sniffing encrypted connections requires the Long Term Key/Link Key to be present on the sniffer hardware. For LE Legacy Connections, the link key can be retrieved by brute force as there are only 1M possible Passkeys.
 

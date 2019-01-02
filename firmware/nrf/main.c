@@ -311,7 +311,16 @@ static void sync_hop_channel() {
 
     insert_connection_event_message(ctx.connection_event);
 
-    ctx.channel = hopping_csa1_get_next_channel( &h );
+    switch (ctx.channel_selection_algorithm){
+        case 0:
+            ctx.channel = hopping_csa1_get_next_channel( &h );
+            break;
+        case 1:
+            ctx.channel = hopping_csa2_get_channel_for_counter( &h,  ctx.connection_event);
+            break;
+        default:
+            break;
+    }
 
     radio_set_channel_fast( ctx.channel );
 
