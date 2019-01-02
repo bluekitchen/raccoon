@@ -124,6 +124,13 @@ struct {
     // access address
     volatile uint32_t aa;
 
+    // cache last advertisement - to check if CSA #2 is supported
+    uint8_t  advertisement_cache_address[6];
+    uint16_t advertisement_cache_csa2_supported;
+
+    // channels selection algorithm index (1 for csa #2)
+    volatile uint8_t channel_selection_algorithm;
+
     // current connection event, first one starts with 0
     // - needed for connection param and channel map updates as well as encryption
     volatile uint16_t connection_event;
@@ -158,6 +165,19 @@ struct {
 
 hopping_t h;
 uint16_t hop;
+
+void printf_hexdump( void *buf, size_t l ) {
+#ifdef DEBUG
+    uint8_t *d = buf;
+    for(size_t i=0; i<l; ++i) {
+        printf("%02x ", d[i] );
+    }
+    printf("\n");
+#else
+    (void) buf;
+    (void) l;
+#endif
+}
 
 static void abort_following(void) {
     timer_stop( hop );
@@ -412,20 +432,40 @@ void RADIO_IRQHandler(void) {
                     break;
                 }
 
-                hopping_init( &h );
-                hopping_set_channel_map( &h, adv->connect_ind.chan_map );
-                hopping_csa1_set_hop_increment( &h, adv->connect_ind.hop );
                 ctx.interval_us = READ_LE_16(&adv->connect_ind.interval) * 1250;
                 ctx.timeout_us  = READ_LE_16(&adv->connect_ind.timeout)  * 10000;
                 ctx.latency     = READ_LE_16(&adv->connect_ind.latency);
                 ctx.connection_event = 0;
                 uint32_t crcInit = READ_LE_24(&adv->connect_ind.crc_init);
                 ctx.aa = READ_LE_32(&adv->connect_ind.access_addr);
-                ctx.channel = hopping_csa1_get_next_channel( &h );
+
+                // init hopping
+                hopping_init( &h );
+                hopping_set_channel_map( &h, adv->connect_ind.chan_map );
+                hopping_csa1_set_hop_increment(  &h, adv->connect_ind.hop );
+                hopping_csa2_set_access_address( &h, ctx.aa);
+                ctx.channel_selection_algorithm = ctx.advertisement_cache_csa2_supported & adv->chan_sel;
+                switch (ctx.channel_selection_algorithm){
+                    case 0:
+                        ctx.channel = hopping_csa1_get_next_channel( &h );
+                        break;
+                    case 1:
+                        ctx.channel = hopping_csa2_get_channel_for_counter( &h,  ctx.connection_event);
+                        break;
+                    default:
+                        break;
+                }
                 radio_follow_conn( ctx.aa, ctx.channel, crcInit );
                 ctx.mode = SYNC_CONNECTION;
-                printf("Follow connection: hop %u, timeout %u us, interval %u\n", adv->connect_ind.hop, ctx.timeout_us, ctx.interval_us);
+                printf("Follow connection: hop %u, timeout %u us, interval %u, csa #%u\n", adv->connect_ind.hop, ctx.timeout_us, ctx.interval_us, ctx.channel_selection_algorithm + 1);
                 insert_connect_request_message(init_addr, adv_addr, ctx.aa, ctx.interval_us, ctx.timeout_us, ctx.latency);
+            } else {
+                // cache advertising address and header
+                struct pdu_adv *adv = &p->payload.pdu.adv;
+                memcpy(ctx.advertisement_cache_address, adv->adv_ind.addr, 6);
+                ctx.advertisement_cache_csa2_supported = adv->chan_sel;
+                // printf("Adv: %02x - ", ctx.advertisement_cache_csa2_supported);
+                // printf_hexdump( ctx.advertisement_cache_address, 6 );
             }
             break;
 
@@ -532,19 +572,6 @@ void RADIO_IRQHandler(void) {
 
 #ifdef GPIO_DURING_RADIO
     nrf_gpio_pin_write(GPIO_DURING_RADIO, 0);
-#endif
-}
-
-void printf_hexdump( void *buf, size_t l ) {
-#ifdef DEBUG
-    uint8_t *d = buf;
-    for(size_t i=0; i<l; ++i) {
-        printf("%02x ", d[i] );
-    }
-    printf("\n");
-#else
-    (void) buf;
-    (void) l;
 #endif
 }
 
