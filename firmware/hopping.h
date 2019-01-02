@@ -83,7 +83,3 @@ void hopping_csa2_set_access_address( hopping_t *c, uint32_t accessAddress );
  */
 uint8_t hopping_csa2_get_channel_for_counter( hopping_t *c, uint16_t counter );
 
-/**
- * @brief separately reverse the lower 8 and the upper 8 bits
- */
-uint16_t hopping_csa2_permutation(uint16_t value);

@@ -68,6 +68,8 @@ void hopping_set_channel_map( hopping_t *c, const uint8_t *chm ) {
 }
 
 void hopping_csa1_set_hop_increment( hopping_t *c, uint8_t hopIncrement ){
+    assert( c != NULL );
+
     c->hopIncrement = hopIncrement;
 }
 
@@ -84,19 +86,49 @@ uint8_t hopping_csa1_get_next_channel( hopping_t *c ) {
 
 // channelIdentifier = (Access Address31-16) XOR (Access Address15-0)
 void hopping_csa2_set_access_address( hopping_t *c, uint32_t accessAddress ){
+    assert( c != NULL );
+
     c->channelIdentifier = (accessAddress >> 16) ^ (accessAddress & 0xffff);
 }
 
 // @TODO rbit intrinsic could be used
-uint16_t hopping_csa2_permutation(uint16_t v){
+static uint16_t hopping_csa2_permutation(uint16_t v){
     v = ((v >> 1) & 0x5555) | ((v & 0x5555) << 1);
     v = ((v >> 2) & 0x3333) | ((v & 0x3333) << 2);
     v = ((v >> 4) & 0x0F0F) | ((v & 0x0F0F) << 4);
     return v;
 }
 
+static uint16_t hopping_csa2_mam(uint16_t a, uint16_t b){
+    return (17 * a) + b;
+}
+
+static uint16_t hopping_csa2_prn_e(hopping_t *c, uint16_t counter){
+    assert( c != NULL );
+
+    // see Bluetooth Spec v5, 4.5.8.3.3 Unmapped Event Channel Selection
+    uint16_t v = counter ^ c->channelIdentifier;
+    v = hopping_csa2_permutation (v);
+    v = hopping_csa2_mam(v, c->channelIdentifier);
+    v = hopping_csa2_permutation (v);
+    v = hopping_csa2_mam(v, c->channelIdentifier);
+    v = hopping_csa2_permutation (v);
+    v = hopping_csa2_mam(v, c->channelIdentifier);
+    v = v ^ c->channelIdentifier;
+    return v;
+}
+
 uint8_t hopping_csa2_get_channel_for_counter( hopping_t *c, uint16_t counter ){
-    return 0;
+    assert( c != NULL );
+
+    uint16_t prn_e = hopping_csa2_prn_e( c, counter);
+    uint16_t unmapped_channel = prn_e % 37;
+    if ( 1 == GET_BIT( c->chMap, unmapped_channel)){
+        return unmapped_channel;
+    } else {
+        uint16_t remappingIndex = (((uint32_t) c->chCnt) * prn_e) >> 16;
+        return c->chRemap[ remappingIndex ];
+    }
 }
 
 
