@@ -350,10 +350,15 @@ void RADIO_IRQHandler(void) {
     uint32_t packet_start_us = NRF_TIMER0->CC[3] - (5 * 8);
 
     // check overrun
-    int queue_packet = 0;
-    if (!queue_full( rxQ )) {
+    int queue_packet = 1;
 
-        queue_packet = 1;
+    // check if packet can be queued
+    if (queue_full( rxQ )) {
+        queue_packet = 0;
+    }
+
+    if (queue_packet) {
+
         /**
          *  switches to a new buffer immediately, only allowed if consumer has lower priority then producer.
          *  Otherwise this leads to partial updated queue data. Normal behavior, queue_alloc to get a block of memory to work with
@@ -393,7 +398,6 @@ void RADIO_IRQHandler(void) {
     } else {
         // note: the current packet is already in buffer and could theoretically be send to the host (containing invalid meta data)
         // however, if we got here, the rx buffer is full and the main loop needs to transfer RX_BUF_CNT-1 packets first
-        queue_packet = 0;
         ctx.buffer_overrun = 1;
         // reuse current buffer / don't use new buffer
     }
