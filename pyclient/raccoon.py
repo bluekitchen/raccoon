@@ -511,11 +511,6 @@ while 1:
         timestamp_sniffer_us, channel, flags, rssi_negative, aa = unpack_from( "<IBBBxI", data )
         packet  = data[8:]
 
-        # filter on rssi
-        rssi = -rssi_negative
-        if rssi < rssi_min:
-            continue
-
         # dump packet
         # print( tag, length, timestamp_log_us, channel, flags, rssi, as_hex(packet) )
 
