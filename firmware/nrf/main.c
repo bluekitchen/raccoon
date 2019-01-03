@@ -363,6 +363,7 @@ void RADIO_IRQHandler(void) {
         NRF_RADIO->PACKETPTR = (uint32_t)(queue_alloc( rxQ )+PDU_META_OFFSET);
 
         // store meta data
+        p->tag = TAG_DATA;
         p->payload.channel       = ctx.channel;
         p->payload.timestamp     = packet_start_us;
         p->payload.rssi_negative = NRF_RADIO->RSSISAMPLE;
@@ -399,19 +400,6 @@ void RADIO_IRQHandler(void) {
 
     // Restart receiver
     NRF_RADIO->TASKS_START = 1;
-
-    // set tag before exit due to crc error
-    switch( ctx.mode ) {
-        case FOLLOW_CONNECT:
-        case SYNC_CONNECTION:
-            p->tag = TAG_DATA;
-            break;
-        case IDLE:
-            // just exit in case we just got a RESET command
-            return;
-        default:
-            break;
-    }
 
     // reset 'supervision timeout'
     ctx.time_without_any_packets_us = 0;
