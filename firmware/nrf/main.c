@@ -341,6 +341,8 @@ void RADIO_IRQHandler(void) {
     uint8_t *curBuf = (uint8_t*)NRF_RADIO->PACKETPTR;
     packet_t *p   = (void*)(curBuf - PDU_META_OFFSET);
 
+    /* get meta data from radio */
+
     // check CRC
     bool crcOk = (NRF_RADIO->CRCSTATUS & RADIO_CRCSTATUS_CRCSTATUS_Msk) ==
                  (RADIO_CRCSTATUS_CRCSTATUS_CRCOk << RADIO_CRCSTATUS_CRCSTATUS_Pos);
@@ -349,12 +351,27 @@ void RADIO_IRQHandler(void) {
     // PPI: TIMER0->TASKS_CAPTURE[3] - Trigger Timer 0 Capture 3 on AA reception
     uint32_t packet_start_us = NRF_TIMER0->CC[3] - (5 * 8);
 
-    // check overrun
+    // RSSI
+    uint8_t  rssi_negative = NRF_RADIO->RSSISAMPLE;
+
+
+    // actions
     int queue_packet = 1;
+    int ignore_adv   = 0;
+
+    // ignore advertisements and connection requests with low rssi
+    if (ctx.mode == FOLLOW_CONNECT && rssi_negative > ctx.rssi_min_negative){
+        queue_packet = 0;
+        ignore_adv   = 1;
+    }
 
     // check if packet can be queued
-    if (queue_full( rxQ )) {
+    if (queue_packet && queue_full( rxQ )) {
         queue_packet = 0;
+    } else {
+        // note: the current packet is already in buffer and could theoretically be send to the host (containing invalid meta data)
+        // however, if we got here, the rx buffer is full and the main loop needs to transfer RX_BUF_CNT-1 packets first
+        ctx.buffer_overrun = 1;
     }
 
     if (queue_packet) {
@@ -371,7 +388,7 @@ void RADIO_IRQHandler(void) {
         p->tag = TAG_DATA;
         p->payload.channel       = ctx.channel;
         p->payload.timestamp     = packet_start_us;
-        p->payload.rssi_negative = NRF_RADIO->RSSISAMPLE;
+        p->payload.rssi_negative = rssi_negative;
         p->payload.aa            = ctx.aa;
         p->payload.flags         = 0;
         // length for adv or data pdu
@@ -395,11 +412,6 @@ void RADIO_IRQHandler(void) {
             p->payload.flags |= (1 << 3);
         }
 
-    } else {
-        // note: the current packet is already in buffer and could theoretically be send to the host (containing invalid meta data)
-        // however, if we got here, the rx buffer is full and the main loop needs to transfer RX_BUF_CNT-1 packets first
-        ctx.buffer_overrun = 1;
-        // reuse current buffer / don't use new buffer
     }
 
     // Restart receiver
@@ -412,15 +424,11 @@ void RADIO_IRQHandler(void) {
 
     switch( ctx.mode ) {
         case FOLLOW_CONNECT:
-            // ignore packets with lower rssi than requested
-            if (p->payload.rssi_negative > ctx.rssi_min_negative){
-                queue_packet = 0;
-                break;
-            } 
-            // don't process control packets if CRC invalid
-            if( !crcOk ) {
+            // don't process control packets if CRC invalid or RSSI filter
+            if( !crcOk || ignore_adv) {
                 break;
             }
+            
             if( p->payload.pdu.adv.type == PDU_ADV_TYPE_CONNECT_IND ) {
                 struct pdu_adv *adv = &p->payload.pdu.adv;
                 uint8_t *init_addr  = adv->connect_ind.init_addr;
@@ -443,14 +451,14 @@ void RADIO_IRQHandler(void) {
                 // init hopping
                 hopping_init( &h );
                 hopping_set_channel_map( &h, adv->connect_ind.chan_map );
-                hopping_csa1_set_hop_increment(  &h, adv->connect_ind.hop );
-                hopping_csa2_set_access_address( &h, ctx.aa);
                 ctx.channel_selection_algorithm = ctx.advertisement_cache_csa2_supported & adv->chan_sel;
                 switch (ctx.channel_selection_algorithm){
                     case 0:
+                        hopping_csa1_set_hop_increment(  &h, adv->connect_ind.hop );
                         ctx.channel = hopping_csa1_get_next_channel( &h );
                         break;
                     case 1:
+                        hopping_csa2_set_access_address( &h, ctx.aa);
                         ctx.channel = hopping_csa2_get_channel_for_counter( &h,  ctx.connection_event);
                         break;
                     default:
