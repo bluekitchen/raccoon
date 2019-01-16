@@ -7,6 +7,7 @@ Raccoon is an open-source Bluetooth Low Energy Sniffer that consists of firmware
 Raccoon was successfully tested on: 
  - Nordic [nRF51 DK (PCA10028)](https://www.nordicsemi.com/Software-and-Tools/Development-Kits/nRF51-DK/GetStarted) with nRF51422
  - Nordic [nRF52 DK (PCA10040)](https://www.nordicsemi.com/Software-and-Tools/Development-Kits/nRF52-DK/Getting-Started) with nRF52832
+ - Nordic [nRF52840 DK (PCA10056)](https://www.nordicsemi.com/Software-and-Tools/Development-Kits/nRF52840-DK/GetStarted) with nRF52840
  - Adafruit [Bluefruit LE Friend](https://www.adafruit.com/product/2267) with nRF51822
 
 ## Dependencies
@@ -28,6 +29,7 @@ Flashing depends on the used device.
 Go to the correct folder:
 - nRF51 DK: `firmware/nrf/pca10028/armgcc`
 - nRF52 DK: `firmware/nrf/pca10040/armgcc`
+- nRF52840 DK: `firmware/nrf/pca10056/armgcc`
 
 Run `make flash`
 
@@ -70,7 +72,7 @@ Example run:
 ### General
 The current version allow to follow all Bluetooth 4.x connections. Optional supported features:
   - LE Data Length Extension (DLE).
-  - Channel Selection Algorithm #2 (CSA #2)
+  - Channel Selection Algorithm #2 (CSA #2) - *only partially working yet*
   
 ### Security
 Encrypted connections are not supported yet. Sniffing encrypted connections requires the Long Term Key/Link Key to be present on the sniffer hardware. For LE Legacy Connections, the link key can be retrieved by brute force as there are only 1M possible Passkeys.
