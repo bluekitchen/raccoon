@@ -4,7 +4,7 @@ PROJECT_NAME     := uart_pca10059
 TARGETS          := nrf52840_xxaa
 OUTPUT_DIRECTORY := _build
 
-SDK_ROOT ?= ../../../../nRF5_SDK_15.2.0_9412b96
+SDK_ROOT ?= ../../../../nRF5_SDK_15.3.0_59ac345
 PROJ_DIR := ../../..
 
 $(OUTPUT_DIRECTORY)/nrf52840_xxaa.out: \
@@ -35,11 +35,13 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/drivers_nrf/nrf_soc_nosd \
   $(SDK_ROOT)/modules/nrfx/mdk \
   $(SDK_ROOT)/components/libraries/bsp \
+  $(SDK_ROOT)/components/libraries/util \
   $(SDK_ROOT)/components/toolchain \
   $(SDK_ROOT)/components/boards \
   $(SDK_ROOT)/modules/nrfx/drivers/include \
   $(SDK_ROOT)/components/toolchain/cmsis/include \
   $(SDK_ROOT)/modules/nrfx/hal \
+  $(SDK_ROOT)/integration/nrfx/ \
 
 # Libraries common to all targets
 LIB_FILES += \
