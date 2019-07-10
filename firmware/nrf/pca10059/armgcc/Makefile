@@ -17,11 +17,30 @@ SRC_FILES += \
   $(PROJ_DIR)/SEGGER_RTT_V640/RTT/SEGGER_RTT_printf.c \
   $(SDK_ROOT)/modules/nrfx/mdk/gcc_startup_nrf52840.S \
   $(SDK_ROOT)/modules/nrfx/mdk/system_nrf52840.c \
+  $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_usbd.c \
+  $(SDK_ROOT)/modules/nrfx/soc/nrfx_atomic.c \
+  $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_systick.c \
+  $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_clock.c \
+  $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_power.c \
   $(PROJ_DIR)/hopping.c \
   $(PROJ_DIR)/queue.c \
   $(PROJ_DIR)/nrf/main.c \
   $(PROJ_DIR)/nrf/radio.c \
   $(PROJ_DIR)/nrf/timer.c \
+  $(SDK_ROOT)/components/libraries/queue/nrf_queue.c \
+  $(SDK_ROOT)/components/libraries/uart/app_uart_fifo.c \
+  $(SDK_ROOT)/components/libraries/usbd/app_usbd.c \
+  $(SDK_ROOT)/components/libraries/usbd/class/cdc/acm/app_usbd_cdc_acm.c \
+  $(SDK_ROOT)/components/libraries/usbd/app_usbd_core.c \
+  $(SDK_ROOT)/components/libraries/usbd/app_usbd_serial_num.c \
+  $(SDK_ROOT)/components/libraries/usbd/app_usbd_string_desc.c \
+  $(SDK_ROOT)/components/libraries/util/app_util_platform.c \
+  $(SDK_ROOT)/components/libraries/util/app_error.c \
+  $(SDK_ROOT)/components/libraries/atomic_fifo/nrf_atfifo.c \
+  $(SDK_ROOT)/components/libraries/atomic/nrf_atomic.c \
+  $(SDK_ROOT)/components/libraries/experimental_section_vars/nrf_section_iter.c \
+  $(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_clock.c \
+  $(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_power.c \
 
 # Include folders common to all targets
 INC_FOLDERS += \
@@ -31,17 +50,31 @@ INC_FOLDERS += \
   $(PROJ_DIR)/SEGGER_RTT_V640/RTT \
   $(PROJ_DIR)/ \
   $(PROJ_DIR)/nrf \
-  $(SDK_ROOT)/modules/nrfx \
   $(SDK_ROOT)/components/drivers_nrf/nrf_soc_nosd \
-  $(SDK_ROOT)/modules/nrfx/mdk \
+  $(SDK_ROOT)/components/libraries/strerror \
+  $(SDK_ROOT)/components/libraries/log \
+  $(SDK_ROOT)/components/libraries/log/src \
   $(SDK_ROOT)/components/libraries/bsp \
   $(SDK_ROOT)/components/libraries/util \
+  $(SDK_ROOT)/components/libraries/delay \
+  $(SDK_ROOT)/components/libraries/fifo \
+  $(SDK_ROOT)/components/libraries/queue \
+  $(SDK_ROOT)/components/libraries/atomic \
+  $(SDK_ROOT)/components/libraries/atomic_fifo \
+  $(SDK_ROOT)/components/libraries/usbd \
+  $(SDK_ROOT)/components/libraries/usbd/class/cdc \
+  $(SDK_ROOT)/components/libraries/usbd/class/cdc/acm \
+  $(SDK_ROOT)/components/libraries/experimental_section_vars \
   $(SDK_ROOT)/components/toolchain \
+  $(SDK_ROOT)/components/toolchain/cmsis/include \
   $(SDK_ROOT)/components/boards \
   $(SDK_ROOT)/modules/nrfx/drivers/include \
-  $(SDK_ROOT)/components/toolchain/cmsis/include \
   $(SDK_ROOT)/modules/nrfx/hal \
+  $(SDK_ROOT)/modules/nrfx \
+  $(SDK_ROOT)/modules/nrfx/mdk \
   $(SDK_ROOT)/integration/nrfx/ \
+  $(SDK_ROOT)/integration/nrfx/legacy \
+  $(SDK_ROOT)/external/utf_converter \
 
 # Libraries common to all targets
 LIB_FILES += \
