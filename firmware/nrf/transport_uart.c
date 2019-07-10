@@ -7,7 +7,9 @@
 #define UART_TX_BUF_SIZE 128                         /**< UART TX buffer size. */
 #define UART_RX_BUF_SIZE 1                           /**< UART RX buffer size. */
 
+#ifdef TX_PIN_NUMBER
 static nrfx_uart_t uart_inst = NRFX_UART_INSTANCE(0);
+#endif
 
 nrfx_err_t transport_init(void)
 {
