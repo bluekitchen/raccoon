@@ -609,7 +609,7 @@ int main(void) {
     nrfx_err_t ret;
     LEDS_CONFIGURE(LEDS_MASK);
     LEDS_OFF(LEDS_MASK);
-    //LEDS_ON(LEDS_MASK);
+    LEDS_ON(LEDS_MASK);
 
     // gpio debugging
 #ifdef GPIO_DURING_RADIO

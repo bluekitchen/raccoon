@@ -162,11 +162,9 @@ $(foreach target, $(TARGETS), $(call define_target, $(target)))
 .PHONY: flash flash_mbr erase
 
 # Flash the program
-flash: default
-	@echo Flashing: $(OUTPUT_DIRECTORY)/nrf52840_xxaa.hex
-	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/nrf52840_xxaa.hex --sectorerase
-	nrfjprog -f nrf52 --reset
-
+flash:
+	@echo Cant use nrfjprog for pca10059 board.
+	@echo To flash with bootloader please	use nRFConnect tool https://www.nordicsemi.com/Software-and-Tools/Development-Tools/nRF-Connect-for-desktop
 
 erase:
 	nrfjprog -f nrf52 --eraseall
