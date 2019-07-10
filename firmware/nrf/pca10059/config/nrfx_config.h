@@ -1,7 +1,6 @@
 #ifndef NRFX_CONFIG_H__
 #define NRFX_CONFIG_H__
 
-#include "sdk_config.h"
 // <<< Use Configuration Wizard in Context Menu >>>\n
 
 // <h> nRF_Drivers

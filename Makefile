@@ -1,7 +1,8 @@
 # nRF5 SDK Repo
-NRF5_SDK_URL      = https://developer.nordicsemi.com/nRF5_SDK/nRF5_SDK_v15.x.x/nRF5_SDK_15.3.0_59ac345.zip
-NRF5_SDK_ROOT    ?= nRF5_SDK_15.3.0_59ac345/
-NRF5_SDK_ARCHIVE ?= nRF5_SDK_15.3.0_59ac345.zip
+NRF5_SDK		 ?= nRF5_SDK_15.3.0_59ac345
+NRF5_SDK_ROOT     = $(NRF5_SDK)/
+NRF5_SDK_ARCHIVE  = $(NRF5_SDK).zip
+NRF5_SDK_URL      = https://developer.nordicsemi.com/nRF5_SDK/nRF5_SDK_v15.x.x/$(NRF5_SDK_ARCHIVE)
 
 all: subdirs | $(NRF5_SDK_ROOT)
 
@@ -26,6 +27,9 @@ $(SUBDIRS):
 
 $(NRF5_SDK_ROOT): | $(NRF5_SDK_ARCHIVE)
 	unzip $(NRF5_SDK_ARCHIVE)
+ifneq "$(findstring $(NRF5_SDK).patch,$(wildcard *.patch))" ""
+	patch -p0 --binary < $(NRF5_SDK).patch
+endif
 
 $(NRF5_SDK_ARCHIVE):
 	@echo sdk archive not found, downloading now...
