@@ -21,6 +21,7 @@ SRC_FILES += \
   $(PROJ_DIR)/hopping.c \
   $(PROJ_DIR)/queue.c \
   $(PROJ_DIR)/nrf/main.c \
+  $(PROJ_DIR)/nrf/transport_uart.c \
   $(PROJ_DIR)/nrf/radio.c \
   $(PROJ_DIR)/nrf/timer.c \
 
