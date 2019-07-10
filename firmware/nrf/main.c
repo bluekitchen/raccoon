@@ -51,7 +51,6 @@
 // #define GPIO_DURING_TIMER 10
 
 #include "nrf.h"
-#include "nrfx_uart.h"
 #include "sniffer_config.h"
 
 #include "debug.h"
@@ -75,9 +74,6 @@
 #define ADVERTISING_RADIO_ACCESS_ADDRESS 0x8E89BED6
 #define ADVERTISING_CRC_INIT             0x555555
 
-// from SDK UART example
-#define UART_TX_BUF_SIZE 128                         /**< UART TX buffer size. */
-#define UART_RX_BUF_SIZE 1                           /**< UART RX buffer size. */
 
 #define PDU_META_OFFSET (offsetof(packet_t, payload.pdu))
 
@@ -85,8 +81,6 @@
 
 // sync hop delay
 #define SYNC_HOP_DELAY_US 1250
-
-static nrfx_uart_t uart_inst = NRFX_UART_INSTANCE(0);
 
 static msgQueue_t * rxQ =  QUEUE_ALLOC( 64, PDU_META_OFFSET + 255 + CRC_LEN );
 static msgQueue_t * msgQ = QUEUE_ALLOC( 16, PDU_META_OFFSET + 80 );
@@ -585,7 +579,7 @@ void RADIO_IRQHandler(void) {
 #endif
 }
 
-void test_uart(void) {
+void test_tx(void) {
     const char * msg = "abcdefghijklmnopqrstuvwxyz";
     uint8_t buffer[50];
     packet_t *packet = (packet_t*) buffer;
@@ -598,7 +592,7 @@ void test_uart(void) {
         static uint32_t i=0;
         printf("0x%08x\n", i++);
 #endif
-        nrfx_uart_tx( &uart_inst, (uint8_t*)packet, packet->length + 3);
+        transport_write((uint8_t*)packet, packet->length + 3);
     }
 }
 
@@ -612,6 +606,7 @@ void __assert_fail (const char *__assertion, const char *__file,
 
 
 int main(void) {
+    nrfx_err_t ret;
     LEDS_CONFIGURE(LEDS_MASK);
     LEDS_OFF(LEDS_MASK);
     //LEDS_ON(LEDS_MASK);
@@ -628,31 +623,8 @@ int main(void) {
 
     hop = timer_create( TIMER_REPEATED );
 
-#ifdef TX_PIN_NUMBER
-    nrfx_uart_config_t config = {
-        TX_PIN_NUMBER,
-        RX_PIN_NUMBER,
-        CTS_PIN_NUMBER,
-        RTS_PIN_NUMBER,
-        NULL,
-        SNIFFER_UART_FLOWCONTROL,
-        NRF_UART_PARITY_EXCLUDED,
-        SNIFFER_UART_BAUDRATE,
-        6,
-    };
-
-    nrfx_err_t err_code;
-    err_code = nrfx_uart_init(&uart_inst, &config, NULL);
-    assert( err_code == NRFX_SUCCESS );
-
-    // Turn on receiver
-    nrfx_uart_rx_enable(&uart_inst);
-#endif
-
-#ifdef BOARD_PCA10059
     transport_init();
 
-#endif
 
     printf("BLE sniffer up and running!\n");
 
@@ -671,7 +643,7 @@ int main(void) {
     radio_filter_disable();
 
     // uncomment next line to test uart throughput
-    // test_uart();
+    // test_tx();
 
 #ifdef AUTO_START
     // start sniffing on channel 37 without host control
@@ -688,8 +660,6 @@ int main(void) {
 #endif
 
     while (1) {
-#ifdef BOARD_PCA10059
-        nrfx_err_t ret;
         packet_t cmd = { 0 };
         if( transport_isready() ) {
             ret = transport_read( &cmd.tag, 3 );
@@ -758,79 +728,6 @@ int main(void) {
             }
         }
 
-
-#endif
-
-#ifdef TX_PIN_NUMBER
-        packet_t cmd = { 0 };
-        if( nrfx_uart_rx_ready( &uart_inst ) ) {
-            err_code = nrfx_uart_rx( &uart_inst, &cmd.tag, 3 );
-            if( NRFX_SUCCESS != err_code ) {
-                printf("Read Header error: %x\n", err_code);
-                continue;
-            }
-
-            if( cmd.length > 0 ) {
-                err_code = nrfx_uart_rx( &uart_inst, (uint8_t*)cmd.value, cmd.length );
-                if(NRFX_SUCCESS != err_code ) {
-                    printf("Read Payload error: %x\n", err_code);
-                    continue;
-                }
-            }
-
-            // printf("TAG: %02x, len %u\n", cmd.tag, cmd.length);
-
-            switch( cmd.tag ) {
-                case TAG_CMD_RESET:
-                    // stop sniffing
-                    abort_following();
-
-                    // reset time
-                    NRF_TIMER0->TASKS_CLEAR = UINT32_C(1);
-
-                    // reset queues
-                    queue_init( rxQ );
-                    queue_init( msgQ );
-                    printf("TAG_CMD_RESET\n");
-                    break;
-                case TAG_CMD_GET_VERSION: {
-                    uint8_t t = TAG_CMD_GET_VERSION;
-                    err_code = nrfx_uart_tx( &uart_inst, &t, sizeof(t) );
-                    assert( err_code == NRFX_SUCCESS );
-
-                    const char *v = VERSION;
-                    uint16_t l = strlen(v);
-                    err_code = nrfx_uart_tx( &uart_inst, (uint8_t*)&l, sizeof(l) );
-                    assert( err_code == NRFX_SUCCESS );
-                    err_code = nrfx_uart_tx( &uart_inst, (uint8_t*)v, l );
-                    assert( err_code == NRFX_SUCCESS );
-                    printf("TAG_CMD_GET_VERSION\n");
-                    break;
-                }
-                case TAG_CMD_SNIFF_CHANNEL: {
-                    uint8_t empty_mac[6] = { 0 };
-                    ctx.channel = cmd.msg.data.cmd_sniff_channel.channel;
-                    ctx.rssi_min_negative = cmd.msg.data.cmd_sniff_channel.rssi_min_negative;
-                    ctx.aa = cmd.msg.data.cmd_sniff_channel.aa;
-                    uint32_t crc_init = cmd.msg.data.cmd_sniff_channel.crc_init;
-                    memcpy( ctx.connection_filter_address, cmd.msg.data.cmd_sniff_channel.mac, 6 );
-                    ctx.connection_filter_active = false;
-                    if( memcmp( empty_mac, ctx.connection_filter_address, 6 ) ) {
-                        ctx.connection_filter_active = true;
-                    }
-                    ctx.mode = FOLLOW_CONNECT;
-                    NRF_RADIO->PACKETPTR = (uint32_t)(queue_alloc( rxQ ) + PDU_META_OFFSET);
-                    radio_follow_conn( ctx.aa, ctx.channel, crc_init );
-                    printf("TAG_CMD_SNIFF_CHANNEL #%u, filter: ", ctx.channel);
-                    printf_hexdump( ctx.connection_filter_address, 6 );
-                    break;
-                }
-                default:
-                    break;
-            }
-        }
-#endif
-
         // decide what to send first: packet or message
         uint32_t rxBufEntries = queue_getSize( rxQ );
         uint32_t msgBufEntries = queue_getSize( msgQ );
@@ -880,16 +777,7 @@ int main(void) {
             }
 
 #else
-
-#ifdef TX_PIN_NUMBER
-            // printf("%06u ", packet->payload.timestamp); printf_hexdump((uint8_t*)packet, packet->length + 3 );
-            nrfx_uart_tx( &uart_inst, (uint8_t*)packet, packet->length + 3 );
-#endif
-
-#ifdef BOARD_PCA10059
             transport_write((void*)packet, packet->length + 3);
-#endif
-
 #endif
             queue_get( queue );
         }
