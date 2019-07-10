@@ -23,6 +23,7 @@
 #define LED_CDC_ACM_OPEN    (BSP_LED_1_MASK)
 #define LED_CDC_ACM_RX      (BSP_LED_2_MASK)
 #define LED_CDC_ACM_TX      (BSP_LED_3_MASK)
+#define LED_ERROR           (BSP_LED_1_MASK)
 
 #define BTN_CDC_DATA_SEND       0
 #define BTN_CDC_NOTIFY_SEND     1
@@ -72,9 +73,13 @@ static char m_rx_buffer[NRF_DRV_USBD_EPSIZE];
 
 void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
 {
-    LEDS_OFF(LEDS_MASK);
-    LEDS_ON(BSP_LED_1_MASK);
-    while(1);
+    while(1)
+    {
+        LEDS_OFF(LEDS_MASK);
+        nrf_delay_ms(500);
+        LEDS_ON(LED_ERROR);
+        nrf_delay_ms(500);
+    }
 }
 
 /**
@@ -132,13 +137,18 @@ static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const * p_inst,
         }
         case APP_USBD_CDC_ACM_USER_EVT_PORT_CLOSE:
             LEDS_OFF(LED_CDC_ACM_OPEN);
+            LEDS_OFF(LED_CDC_ACM_TX);
+            LEDS_OFF(LED_CDC_ACM_RX);
+
+            /*Free queue */
+            nrf_queue_reset(&m_rx_queue);
             break;
         case APP_USBD_CDC_ACM_USER_EVT_TX_DONE:
             LEDS_INVERT(LED_CDC_ACM_TX);
             break;
         case APP_USBD_CDC_ACM_USER_EVT_RX_DONE:
         {
-            LEDS_INVERT(LED_CDC_ACM_TX);
+            LEDS_INVERT(LED_CDC_ACM_RX);
 
             /*Get amount of data transfered*/
             size_t size = app_usbd_cdc_acm_rx_size(p_cdc_acm);
@@ -222,6 +232,8 @@ nrfx_err_t transport_init(void)
         app_usbd_enable();
         app_usbd_start();
     }
+
+    LEDS_OFF(LEDS_MASK);
 
     return ret;
 }
