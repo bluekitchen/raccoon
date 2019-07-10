@@ -25,6 +25,7 @@ SRC_FILES += \
   $(PROJ_DIR)/hopping.c \
   $(PROJ_DIR)/queue.c \
   $(PROJ_DIR)/nrf/main.c \
+  $(PROJ_DIR)/nrf/transport_usbd.c \
   $(PROJ_DIR)/nrf/radio.c \
   $(PROJ_DIR)/nrf/timer.c \
   $(SDK_ROOT)/components/libraries/queue/nrf_queue.c \
