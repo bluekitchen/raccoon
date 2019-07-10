@@ -1,0 +1,11 @@
+--- nRF5_SDK_15.3.0_59ac345/integration/nrfx/legacy/nrf_drv_clock.c	2019-02-14 17:25:04.000000000 +0100
++++ nRF5_SDK_15.3.0_59ac345/integration/nrfx/legacy/nrf_drv_clock.c	2019-07-10 13:56:11.269650320 +0200
+@@ -38,7 +38,7 @@
+  *
+  */
+ 
+-#include <nordic_common.h>
++#include "sdk_common.h"
+ #include "nrf_drv_clock.h"
+ 
+ #if NRF_MODULE_ENABLED(NRF_CLOCK)

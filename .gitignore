@@ -1,4 +1,5 @@
 *.jdebug.user
 *.pklg
 *.swp
-nRF5_SDK_*.*.*_*
+nRF5_SDK_*.*.*_*/
+nRF5_SDK_*.*.*_*.zip
