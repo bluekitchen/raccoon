@@ -1,7 +1,12 @@
 #include "transport.h"
 
+#include <assert.h>
+
 #include "nrf.h"
+#include "boards.h"
 #include "nrfx_uart.h"
+
+#include "sniffer_config.h"
 
 // from SDK UART example
 #define UART_TX_BUF_SIZE 128                         /**< UART TX buffer size. */
