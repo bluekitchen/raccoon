@@ -10,6 +10,7 @@ all: subdirs | $(NRF5_SDK_ROOT)
 SUBDIRS = firmware/nrf/blefriend32/armgcc/ \
 		  firmware/nrf/pca10028/armgcc/    \
 		  firmware/nrf/pca10040/armgcc/    \
+		  firmware/nrf/pca10056/armgcc/    \
 		  firmware/nrf/pca10059/armgcc/
 
 SUBDIRS_CLEAN := $(addsuffix clean,$(SUBDIRS))
