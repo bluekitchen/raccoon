@@ -8,6 +8,7 @@ Raccoon was successfully tested on:
  - Nordic [nRF51 DK (PCA10028)](https://www.nordicsemi.com/Software-and-Tools/Development-Kits/nRF51-DK/GetStarted) with nRF51422
  - Nordic [nRF52 DK (PCA10040)](https://www.nordicsemi.com/Software-and-Tools/Development-Kits/nRF52-DK/Getting-Started) with nRF52832
  - Nordic [nRF52840 DK (PCA10056)](https://www.nordicsemi.com/Software-and-Tools/Development-Kits/nRF52840-DK/GetStarted) with nRF52840
+ - Nordic [nRF52840 Dongle (PCA10059)](https://www.nordicsemi.com/Software-and-tools/Development-Kits/nRF52840-Dongle) with nRF52840
  - Adafruit [Bluefruit LE Friend](https://www.adafruit.com/product/2267) with nRF51822
 
 ## Dependencies
@@ -32,6 +33,18 @@ Go to the correct folder:
 - nRF52840 DK: `firmware/nrf/pca10056/armgcc`
 
 Run `make flash`
+
+### Nordic nRF52840 Dongle
+
+The nRF52840 Dongle comes with a MBR and a Bootloader that supports firmware update via DFU mode. Here, we use the nRFConnect for Desktop tool:
+
+- Download and install [nRFConnect For Desktop](https://www.nordicsemi.com/Software-and-tools/Development-Tools/nRF-Connect-for-desktop)
+- Start nRF Connect and select Programmer
+- Enter Bootloader mode by pressing RESET button - the red LED starts pulsing
+- Select your device in the 'Select Device' pop-up in the upper left
+- Add Hex file: `firmware/nrf/pca10059/armgcc/_build/nrf52840_xxaa.hex`
+- Press 'Write'
+- After successful write, the warning 'Nordic DFU Trigger Interface was not found' is shown. That's ok - Raccoon was flashed and is ready
 
 ### Adafruit Bluefruit LE Friend
 
