@@ -75,6 +75,9 @@ config_template = '''# Raccoon BLE Sniffer Config
 # PKLG format minimics HCI data to/from a Bluetooth Controller. It can be opened with Wireshark and Apple's PacketLogger
 # format  = 'pklg'
 
+# PCAP format uses Bluetooth BLE Trace format defined by libbt/Ubertooth for use with CrackLE. It can be opened with Wireshark
+# format = 'crackle'
+
 # PCAP format uses Bluetooth BLE Trace format defined by Nordic. It can be opened with Wireshark.
 format = 'pcap'
 
@@ -401,6 +404,9 @@ cfg.format = cfg.format.lower()
 if cfg.format == 'pcap':
     filename = 'trace.pcap'
     output = PcapNordicTapWriter(filename)
+elif cfg.format == 'crackle':
+    filename = 'trace.pcap'
+    output = PcapLeLlWithPhdrWriter(filename)
 elif cfg.format == 'pklg':
     filename = 'trace.pklg'
     output = PklgAirWriter(filename)

@@ -83,17 +83,25 @@ Example run:
 ## Status and Outlook
 
 ### General
+
 The current version allow to follow all Bluetooth 4.x connections. Optional supported features:
   - LE Data Length Extension (DLE).
   - Channel Selection Algorithm #2 (CSA #2) - *only partially working yet*
   
 ### Security
-Encrypted connections are not supported yet. Sniffing encrypted connections requires the Long Term Key/Link Key to be present on the sniffer hardware. For LE Legacy Connections, the link key can be retrieved by brute force as there are only 1M possible Passkeys.
+
+Encrypted connections are not supported yet. Sniffing encrypted connections requires the Long Term Key/Link Key to be present on the sniffer hardware. 
+
+For LE Legacy Connections, the link key can be retrieved using [crackle](https://github.com/mikeryan/crackle) if the pairing is observed.
+
+To use Raccon with crackle, select packet format 'crackle' and then use crackle as descriped on the recorded .pcap trace:  `crackle -i trace.pcap -o decrypted.pcap`
 
 ### LE 2M/Coded PHY
+
 Logging connections with 2-MBit PHY or Coded PHY is not implemented yet.
 
 ### Throughput
+
 The UART of the nRF5x devices only support a maximal baudrate of 1 mbps. This is not enough when the connection intervals are fully used. The new [nRF52840 Dongle (PCA10059)](https://www.nordicsemi.com/Software-and-Tools/Development-Kits/nRF52840-Dongle/GetStarted) supports the USD Device mode, which should be fast enough to even capture LE 2M PHY at max speed.
 
 
