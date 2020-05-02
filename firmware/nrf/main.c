@@ -757,6 +757,7 @@ int main(void) {
         if( queue != NULL ) {
 #ifdef USE_RTT_OUTPUT
             uint32_t delta = rxTimestamp - curTimeStamp;
+            (void) delta;
             curTimeStamp = rxTimestamp;
 
             switch( packet->tag ) {
@@ -769,6 +770,7 @@ int main(void) {
                 }
                 case TAG_MSG_LOG: {
                     const char * msg = (const char *) packet->msg.data.value;
+                    (void) msg;
                     LOG_DBG("%3u %6u %6d - %s\n", msgBufEntries, msgTimestamp, delta, msg);
                     break;
                 }

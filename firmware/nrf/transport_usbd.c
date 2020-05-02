@@ -103,6 +103,7 @@ NRF_QUEUE_DEF(uint8_t,
 
 static char m_rx_buffer[NRF_DRV_USBD_EPSIZE];
 
+static bool cdc_port_open = false;
 
 void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
 {
@@ -163,6 +164,8 @@ static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const * p_inst,
         {
             LEDS_ON(LED_CDC_ACM_OPEN);
 
+            cdc_port_open = true;
+
             /*Setup first transfer*/
             cdc_acm_process_and_prepare_buffer(p_cdc_acm);
 
@@ -172,6 +175,8 @@ static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const * p_inst,
             LEDS_OFF(LED_CDC_ACM_OPEN);
             LEDS_OFF(LED_CDC_ACM_TX);
             LEDS_OFF(LED_CDC_ACM_RX);
+
+            cdc_port_open = false;
 
             /*Free queue */
             nrf_queue_reset(&m_rx_queue);
@@ -298,7 +303,7 @@ nrfx_err_t transport_write(void* pbuf, size_t len)
 {
     while (app_usbd_event_queue_process());
     // this is an uggly fix for random cdc failure
-    while (app_usbd_cdc_acm_write(&m_app_cdc_acm, pbuf, len) != NRF_SUCCESS);
+    while ((app_usbd_cdc_acm_write(&m_app_cdc_acm, pbuf, len) != NRF_SUCCESS) && cdc_port_open);
 
     return NRF_SUCCESS;
 };
