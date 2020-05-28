@@ -13,7 +13,7 @@ extern "C" {
 
 #define LEDS_LIST { LED_1, LED_2, LED_3 }
 
-#define LEDS_ACTIVE_STATE 1
+#define LEDS_ACTIVE_STATE 0
 
 #define BSP_LED_0      LED_1
 #define BSP_LED_1      LED_2
@@ -21,18 +21,16 @@ extern "C" {
 
 #define LEDS_INV_MASK  LEDS_MASK
 
-#define BUTTONS_NUMBER 2
+#define BUTTONS_NUMBER 1
 
-#define SW_1           4
-#define SW_2           5
+#define SW_1           18
 #define BUTTON_PULL    NRF_GPIO_PIN_PULLUP
 
-#define BUTTONS_LIST { SW_1, SW_2 }
+#define BUTTONS_LIST { SW_1 }
 
 #define BUTTONS_ACTIVE_STATE 0
 
 #define BSP_BUTTON_0   SW_1
-#define BSP_BUTTON_1   SW_2
 
 #define RX_PIN_NUMBER  20
 #define TX_PIN_NUMBER  19
