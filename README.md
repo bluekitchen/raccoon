@@ -10,6 +10,9 @@ Raccoon was successfully tested on:
  - Nordic [nRF52840 DK (PCA10056)](https://www.nordicsemi.com/Software-and-Tools/Development-Kits/nRF52840-DK/GetStarted) with nRF52840
  - Nordic [nRF52840 Dongle (PCA10059)](https://www.nordicsemi.com/Software-and-tools/Development-Kits/nRF52840-Dongle) with nRF52840
  - Adafruit [Bluefruit LE Friend](https://www.adafruit.com/product/2267) with nRF51822
+ - Makerdiary [nRF52840 MDK](https://github.com/makerdiary/nrf52840-mdk) with nRF52840
+ - Makerdiary [nRF52840 MDK USB Dongle](https://github.com/makerdiary/nrf52840-mdk-usb-dongle) with nRF52840
+ - Makerdiary [Pitaya Go](https://github.com/makerdiary/pitaya-go) with nRF52840
 
 ## Dependencies
 
@@ -49,6 +52,15 @@ The nRF52840 Dongle comes with a MBR and a Bootloader that supports firmware upd
 ### Adafruit Bluefruit LE Friend
 
 There's no support to update via the BLE DFU. However, the LE Friend provides the regular SWD interface to upload the firmware with an JTAG/SWD programmer (e.g. a ST-Link or a SEGGER J-Link). Config files for OpenOCD are provided int the `firmware/nrf/blefriend32` folder.
+
+### Makderdiary nRF52840 MDK
+Drag-n-drop the hex file `firmware/nrf/nrf52840_mdk/armgcc/_build/nrf52840_xxaa.hex` to the disk drive named `DAPLink` of the board, and then Raccoon will be ready.
+
+### Makerdiary nRF52840 MDK USB Dongle
+Follow [the guide - Programming the nRF52840 MDK USB Dongle](https://wiki.makerdiary.com/nrf52840-mdk-usb-dongle/programming/) to flash the firmware `firmware/nrf/nrf52840_mdk_usb_dongle/armgcc/_build/nrf52840_xxaa.hex`.
+
+### Makerdiary Pitya Go
+Follow [the guide - How to Program Pitaya Go](https://wiki.makerdiary.com/pitaya-go/programming/) to flash the firmware `firmware/nrf/pitaya_go/armgcc/_build/nrf52840_xxaa.hex`.
 
 ## Setup
 
