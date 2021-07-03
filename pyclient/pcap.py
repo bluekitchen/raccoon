@@ -63,7 +63,7 @@ class PcapNordicTapWriter(PcapWrite):
         super().__init__(output, self.DLT)
 
     def payload(self, flags, channel, rssi, ecount, delta, packet):
-        payload_data = pack( '<BBBBHi',  10,  flags,  channel,  rssi,  ecount,  delta ) + packet
+        payload_data = pack( '<BBBBHi',  10,  flags,  channel,  rssi,  ecount & 0xFFFF,  delta ) + packet
         pkt_size = len(payload_data)
         if pkt_size > 255:
             pkt_size = 255
