@@ -509,7 +509,7 @@ while 1:
 
     if tag == TAG_MSG_TERMINATE:
         ui.log_info("Restart sniffer on channel #%u" % earliest_event_sniffer.channel)
-        earliest_event_sniffer.write( pack('<BHIBII6s', TAG_CMD_SNIFF_CHANNEL, 19, 0, earliest_event_sniffer.channel, ADVERTISING_RADIO_ACCESS_ADDRESS, ADVERTISING_CRC_INIT, filter_mac ) )
+        earliest_event_sniffer.write( pack('<BHIBII6sB', TAG_CMD_SNIFF_CHANNEL, 20, 0, earliest_event_sniffer.channel, ADVERTISING_RADIO_ACCESS_ADDRESS, ADVERTISING_CRC_INIT, filter_mac, rssi_min_neg ) )
 
     if tag == TAG_DATA:
 
