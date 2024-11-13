@@ -237,6 +237,7 @@ class ConsoleUI(object):
             aa, interval_us, timeout_us, latency = unpack_from("<IIIH", data[16:])
             self.log_info("CONNECTION %s -> %s -- aa %08x, interval %.2f ms, timeout_us %.2f ms, latency %u" % (addr_str(initiator), addr_str(advertiser), aa, interval_us / 1000, timeout_us / 1000, latency))
             self.connection_event = 0
+            self.packets = 0
 
         if tag == TAG_MSG_CONNECTION_EVENT:
             timestamp, self.connection_event = unpack_from("<IH", data)
@@ -244,9 +245,9 @@ class ConsoleUI(object):
         if tag == TAG_MSG_TERMINATE:
             timestamp, reason = unpack_from("<IB", data)
             if reason == 0:
-                self.log_info("TERMINATE, disconnect")
+                self.log_info("TERMINATE, disconnect (after %u connection events and %u data packets)" % (self.connection_event, self.packets))
             if reason == 1:
-                self.log_info("TERMINATE, timeout")
+                self.log_info("TERMINATE, timeout (after %u connection events and %u data packets)" % (self.connection_event, self.packets))
 
         if tag == TAG_MSG_CHAN_MAP_UPDATE:
             timestamp, ch0, ch1, ch2, ch3, ch4= unpack_from("<IBBBBB", data)
